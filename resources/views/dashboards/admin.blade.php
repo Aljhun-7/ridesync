@@ -26,6 +26,19 @@
             <div class="card metric"><span class="muted">Customers</span><strong>{{ $stats['customers'] }}</strong><span>Managed records</span></div>
         </section>
 
+        @php
+            $adminChartData = [
+                'monthlyRevenue' => $monthlyRevenue->map(fn ($value, $label) => ['label' => $label, 'value' => round((float) $value, 2)])->values(),
+                'serviceRevenue' => $serviceRevenue->map(fn ($value, $label) => ['label' => $label, 'value' => round((float) $value, 2)])->values(),
+                'statusMix' => collect(\App\Models\ServiceBooking::STATUSES)
+                    ->map(fn ($status) => ['label' => $statusLabel($status), 'value' => $bookings->where('status', $status)->count()])
+                    ->filter(fn ($item) => $item['value'] > 0)
+                    ->values(),
+            ];
+        @endphp
+        <script id="admin-chart-data" type="application/json">@json($adminChartData)</script>
+        <section id="admin-overview-charts" aria-label="Dashboard charts"></section>
+
         <section class="page-links" aria-label="Admin feature pages">
             <a class="page-link" href="{{ route('admin.bookings.index') }}"><strong>Jobs</strong><span class="muted">Create, edit, delete, and update service bookings.</span></a>
             <a class="page-link" href="{{ route('admin.assignments') }}"><strong>Assignments</strong><span class="muted">Assign mechanics and move active jobs forward.</span></a>

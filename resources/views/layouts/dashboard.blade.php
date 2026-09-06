@@ -4,23 +4,55 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? 'Dashboard | RideSync' }}</title>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
             * { box-sizing: border-box; }
+            :root {
+                --ink: #eafcff;
+                --text: #d7f7ff;
+                --muted: #8ca8bb;
+                --panel: rgba(15, 29, 47, .9);
+                --panel-soft: rgba(22, 39, 61, .82);
+                --line: rgba(124, 242, 255, .18);
+                --blue: #2f8cff;
+                --green: #20f7a5;
+                --accent: linear-gradient(135deg, var(--blue), var(--green));
+                --shadow-dark: rgba(1, 8, 18, .72);
+                --shadow-light: rgba(127, 244, 255, .12);
+            }
             body {
                 margin: 0;
                 min-height: 100vh;
-                color: #14213d;
+                color: var(--text);
                 background:
-                    radial-gradient(circle at top left, rgba(148, 163, 184, .32), transparent 34%),
-                    linear-gradient(135deg, #f5f7fb 0%, #d4d8df 48%, #0b0f16 100%);
+                    radial-gradient(circle at 12% 8%, rgba(47, 140, 255, .24), transparent 28%),
+                    radial-gradient(circle at 86% 4%, rgba(32, 247, 165, .18), transparent 24%),
+                    linear-gradient(135deg, #07111f 0%, #101b2c 46%, #071019 100%);
                 background-attachment: fixed;
                 font-family: Arial, Helvetica, sans-serif;
             }
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                background-image:
+                    linear-gradient(rgba(124, 242, 255, .045) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(124, 242, 255, .04) 1px, transparent 1px);
+                background-size: 42px 42px;
+                mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .85), transparent 82%);
+            }
             header {
-                border-bottom: 1px solid rgba(255, 255, 255, .12);
-                background: linear-gradient(135deg, #4b5563 0%, #111827 55%, #020617 100%);
+                position: sticky;
+                top: 0;
+                z-index: 20;
+                border-bottom: 1px solid var(--line);
+                background:
+                    linear-gradient(135deg, rgba(20, 35, 55, .94), rgba(4, 10, 22, .94)),
+                    linear-gradient(135deg, rgba(47, 140, 255, .16), rgba(32, 247, 165, .1));
                 color: #ffffff;
-                box-shadow: 0 14px 36px rgba(0, 0, 0, .24);
+                box-shadow: 14px 14px 32px var(--shadow-dark), -10px -10px 28px var(--shadow-light);
+                backdrop-filter: blur(18px);
             }
             .bar,
             .content {
@@ -40,17 +72,19 @@
                 gap: 10px;
                 font-size: 20px;
                 font-weight: 800;
+                text-shadow: 0 0 18px rgba(32, 247, 165, .34);
             }
             .brand-logo {
                 width: 44px;
                 height: 44px;
                 border-radius: 8px;
                 object-fit: contain;
-                background: rgba(255, 255, 255, .08);
+                background: rgba(10, 22, 38, .86);
                 padding: 3px;
+                box-shadow: inset 3px 3px 8px rgba(0, 0, 0, .5), inset -3px -3px 8px rgba(124, 242, 255, .12), 0 0 18px rgba(32, 247, 165, .18);
             }
             .user {
-                color: #cbd5e1;
+                color: var(--muted);
                 font-size: 14px;
             }
             .header-actions {
@@ -63,25 +97,50 @@
             .admin-tabs {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 8px;
+                gap: 4px;
+                min-height: auto;
+                justify-content: flex-start;
                 padding: 0 0 16px;
             }
             .header-link {
-                border: 1px solid rgba(255, 255, 255, .18);
-                border-radius: 7px;
-                color: #ffffff;
+                position: relative;
+                border: 1px solid transparent;
+                border-radius: 8px;
+                color: var(--text);
                 padding: 10px 14px;
                 text-decoration: none;
                 font-size: 13px;
                 font-weight: 800;
+                transition: color .18s ease, transform .18s ease, text-shadow .18s ease;
             }
             .admin-tabs .header-link {
-                background: rgba(255, 255, 255, .06);
+                background: transparent;
+                box-shadow: none;
             }
             .admin-tabs .header-link.is-active {
-                border-color: rgba(255, 255, 255, .82);
-                background: #ffffff;
-                color: #14213d;
+                color: #eafff9;
+                text-shadow: 0 0 16px rgba(32, 247, 165, .5);
+            }
+            .admin-tabs .header-link.is-active::after {
+                content: "";
+                position: absolute;
+                right: 12px;
+                bottom: 4px;
+                left: 12px;
+                height: 3px;
+                border-radius: 999px;
+                background: var(--accent);
+                box-shadow: 0 0 16px rgba(32, 247, 165, .45);
+            }
+            .header-link:hover {
+                transform: translateY(-1px);
+                color: #ffffff;
+                text-shadow: 0 0 14px rgba(47, 140, 255, .4);
+            }
+            .header-actions .header-link {
+                border-color: var(--line);
+                background: rgba(16, 31, 50, .78);
+                box-shadow: 8px 8px 18px rgba(0, 0, 0, .32), -6px -6px 16px rgba(124, 242, 255, .08);
             }
             .modal-backdrop {
                 position: fixed;
@@ -91,7 +150,7 @@
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
-                background: rgba(2, 6, 23, .72);
+                background: rgba(2, 6, 23, .76);
                 backdrop-filter: blur(8px);
             }
             .modal-backdrop.is-open {
@@ -99,11 +158,11 @@
             }
             .logout-modal {
                 width: min(420px, 100%);
-                border: 1px solid rgba(255, 255, 255, .16);
+                border: 1px solid var(--line);
                 border-radius: 8px;
-                background: linear-gradient(135deg, #ffffff 0%, #eef2f7 48%, #d7dde6 100%);
-                color: #0f172a;
-                box-shadow: 0 28px 70px rgba(0, 0, 0, .42);
+                background: linear-gradient(145deg, rgba(20, 36, 57, .98), rgba(7, 16, 30, .98));
+                color: var(--text);
+                box-shadow: 22px 22px 60px rgba(0, 0, 0, .58), -12px -12px 34px rgba(124, 242, 255, .09);
                 overflow: hidden;
             }
             .logout-modal-head {
@@ -111,7 +170,7 @@
                 gap: 12px;
                 align-items: center;
                 padding: 18px 20px;
-                background: linear-gradient(135deg, #4b5563 0%, #111827 56%, #020617 100%);
+                background: linear-gradient(135deg, rgba(47, 140, 255, .22), rgba(32, 247, 165, .14));
                 color: #ffffff;
             }
             .logout-modal-logo {
@@ -130,14 +189,14 @@
             }
             .logout-modal-subtitle {
                 margin-top: 3px;
-                color: #cbd5e1;
+                color: var(--muted);
                 font-size: 13px;
             }
             .logout-modal-body {
                 padding: 22px 20px 18px;
             }
             .logout-modal-body p {
-                color: #475569;
+                color: var(--muted);
             }
             .logout-modal-actions {
                 display: flex;
@@ -146,25 +205,26 @@
                 padding: 0 20px 20px;
             }
             .modal-cancel {
-                border: 1px solid #cbd5e1;
-                background: #ffffff;
-                color: #14213d;
+                border: 1px solid var(--line);
+                background: rgba(16, 31, 50, .9);
+                color: var(--text);
             }
             .modal-cancel:hover {
-                background: #f1f5f9;
+                background: rgba(25, 46, 72, .94);
             }
             .modal-confirm {
-                background: #0f766e;
+                background: var(--accent);
+                color: #03131e;
             }
             .content {
                 padding: 32px 0 52px;
             }
             .panel {
-                border: 1px solid #d8dee8;
+                border: 1px solid var(--line);
                 border-radius: 8px;
-                background: #ffffff;
+                background: var(--panel);
                 padding: 32px;
-                box-shadow: 0 14px 40px rgba(20, 33, 61, .06);
+                box-shadow: 16px 16px 36px var(--shadow-dark), -10px -10px 28px var(--shadow-light);
             }
             h1 {
                 margin: 0 0 10px;
@@ -173,20 +233,23 @@
             }
             p {
                 margin: 0;
-                color: #667085;
+                color: var(--muted);
                 line-height: 1.6;
             }
             button {
                 border: 0;
-                border-radius: 7px;
+                border-radius: 8px;
                 padding: 10px 14px;
-                color: #ffffff;
-                background: #0f766e;
+                color: #03131e;
+                background: var(--accent);
                 font-weight: 800;
                 cursor: pointer;
+                box-shadow: 8px 8px 18px rgba(0, 0, 0, .34), -5px -5px 14px rgba(124, 242, 255, .1), inset 1px 1px 3px rgba(255, 255, 255, .32);
+                transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
             }
             button:hover {
-                background: #115e59;
+                filter: brightness(1.08);
+                transform: translateY(-1px);
             }
             a {
                 color: inherit;
